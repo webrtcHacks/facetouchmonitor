@@ -6,16 +6,12 @@ const sourceVideo = document.querySelector('video');
 const drawCanvas = document.querySelector('canvas');
 // let drawCanvas = document.createElement('canvas');
 
-// ToDo: hide this instead
-drawCanvas.height = 0;
-drawCanvas.width = 0;
-
 
 // Canvas setup
-const ctx = drawCanvas.getContext('2d');
+const drawCtx = drawCanvas.getContext('2d');
 
 const flipHorizontal = true;
-let mask = true;
+let mask = false;
 
 //for starting events
 let isPlaying = false,
@@ -60,6 +56,10 @@ async function predictLoop(net){
         sourceVideo.hidden = true;
     }
 
+    drawCanvas.style.display = "block";
+
+
+
     // ToDo: some kind of stop function??
     // if (sourceVideo.videoTracks.length === 0)
     //    isPlaying = false;
@@ -69,12 +69,15 @@ async function predictLoop(net){
         const segmentation = await net.segmentPersonParts(sourceVideo, config);
         // console.log(segmentation);
 
-        let threshold = 0.9;
-        let nose = segmentation.allPoses[0].keypoints[0].score > threshold;
-        let leftEye = segmentation.allPoses[0].keypoints[1].score > threshold;
-        let rightEye = segmentation.allPoses[0].keypoints[2].score > threshold;
-        let leftWrist = segmentation.allPoses[0].keypoints[9].score > threshold;
-        let rightWrist = segmentation.allPoses[0].keypoints[10].score > threshold;
+        let faceThreshold = 0.9;
+        let handThreshold = 0.7;
+
+        let nose = segmentation.allPoses[0].keypoints[0].score > faceThreshold;
+        let leftEye = segmentation.allPoses[0].keypoints[1].score > faceThreshold;
+        let rightEye = segmentation.allPoses[0].keypoints[2].score > faceThreshold;
+        let leftWrist = segmentation.allPoses[0].keypoints[9].score > handThreshold;
+        let rightWrist = segmentation.allPoses[0].keypoints[10].score > handThreshold;
+
 
         if ( (nose || leftEye || rightEye) && (leftWrist || rightWrist) )
         {
@@ -102,25 +105,25 @@ async function predictLoop(net){
                 flipHorizontal);
         }
 
-        /*
-        console.log(segmentation);
+
+        // console.log(segmentation);
 
         // Show dots
-        segmentation.allPoses.forEach(personSegmentation=>{
-            let pose = personSegmentation.pose;
-            if (flipHorizontally) {
-                pose = bodyPix.flipPoseHorizontal(pose, personSegmentation.width);
+        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        segmentation.allPoses.forEach(pose=>{
+            if (flipHorizontal) {
+                pose = bodyPix.flipPoseHorizontal(pose, segmentation.width);
             }
-            drawKeypoints(pose.keypoints, 0.1, ctx);
+            drawKeypoints(pose.keypoints, handThreshold, drawCtx);
         })
-        */
+
 
     }
 
 }
 
 
-function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
+function drawKeypoints(keypoints, minConfidence, ctx, color = 'aqua', scale = 1) {
     for (let i = 0; i < keypoints.length; i++) {
         const keypoint = keypoints[i];
 
@@ -129,11 +132,9 @@ function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
         }
 
         const {y, x} = keypoint.position;
-        //drawPoint(ctx, y * scale, x * scale, 3, COLOR);
-
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, 2 * Math.PI);
-        ctx.fillStyle = 'aqua';
+        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
         ctx.fill();
 
     }

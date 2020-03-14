@@ -1,0 +1,33 @@
+<html>
+<head>
+    <style>
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            /* Mirror the local sourceVideo */
+            transform: scale(-1, 1);            /*For Firefox (& IE) */
+            -webkit-transform: scale(-1, 1);     /*for Chrome & Opera (& Safari) */
+        }
+        canvas{
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index:0
+        }
+    </style>
+    <!-- Load TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.2"></script>
+    <!-- Load BodyPix -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.0"></script>
+</head>
+
+<body>
+<canvas></canvas>
+<video id="myVid" autoplay></video>
+<button id="startBtn">Click to Start</button>
+<script src="gum.js"></script>
+<script src="detect.js"></script>
+</body>
+</html>

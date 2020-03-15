@@ -65,9 +65,11 @@ async function predictLoop(net) {
         updateFace = !updateFace;
     }, 1000);
 
+    // Timers
+
+
 
     while (isPlaying) {
-
 
         // ToDo: some kind of stop function??
         // if (sourceVideo.srcObject.getVideoTracks.length === 0)
@@ -161,6 +163,8 @@ async function predictLoop(net) {
                     alertTimeout = false;
                 }, 1000)
             }
+
+            updateStats(alertTimeout);
 
         }
 
@@ -270,4 +274,42 @@ function arrayToMatrix(arr, rowLength) {
         newArray.push(b);
     }
     return newArray;
+}
+
+let touches = 0;
+let lastFrameTime = new Date().getTime();
+let lastTouchTime = false;
+let lastTouchStatus = false;
+
+
+// Update stats
+
+const touchesDisplay = document.querySelector('#touches');
+const lastTouchDisplay = document.querySelector('#lastTouch');
+const fpsDisplay = document.querySelector('#fps');
+
+function updateStats(touched){
+
+    // FPS display
+    let now = new Date().getTime();
+    let fps = 1000/(now-lastFrameTime);
+    lastFrameTime = now;
+    fpsDisplay.innerText = fps.toFixed(2);
+
+    // Touch counter
+    if(touched && lastTouchStatus === false)
+        touches++;
+
+    lastTouchStatus = touched;
+    touchesDisplay.innerText = touches;
+
+    // Last Touch timer
+    if(touched)
+        lastTouchTime = now;
+    if(lastTouchTime)
+        lastTouchDisplay.innerHTML = ((now - lastTouchTime)/1000).toFixed(0);
+    else
+        lastTouchDisplay.innerHTML = "0";
+
+
 }

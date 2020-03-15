@@ -17,6 +17,16 @@
             left: 0;
             z-index:0
         }
+        div#dashboard{
+            position: absolute;
+            top: 0;
+            left: 640px;
+            background-color: ghostwhite;
+            padding: 10px;
+        }
+        p{
+            margin: 5px;
+        }
     </style>
     <!-- Load TensorFlow.js -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.2"></script>
@@ -28,6 +38,26 @@
 <canvas></canvas>
 <video id="myVid" autoplay></video>
 <button id="startBtn">Click to Start</button>
+<div id="dashboard">
+    <div id="stats">
+        <h3>Stats</h3>
+        <p>Touches:  <span id="touches"></span></p>
+        <p>Last Touch:  <span id="lastTouch"></span> sec ago</p>
+        <p>FPS: <span id="fps"></span></p>
+    </div>
+    <div id="controls">
+        <h3>Controls</h3>
+        <p><em>ToDo: Not hooked up</em></p>
+        <label for="showPoints">Time between alerts (s)</label>
+        <input type="text" size=4 id="alertTimeOut" name="alertTimeOut" value="1"><br>
+        <input type="checkbox" id="beepToggle" name="beepToggle" value="beepToggle">
+        <label for="showPoints">Beep on touch</label><br>
+        <input type="checkbox" id="showMask" name="showMask" value="showMask">
+        <label for="showMask">Show the mask</label><br>
+        <input type="checkbox" id="showPoints" name="showPoints" value="showPoints">
+        <label for="showPoints">Show pose points</label><br>
+    </div>
+</div>
 <script src="gum.js"></script>
 <script src="detect.js"></script>
 </body>

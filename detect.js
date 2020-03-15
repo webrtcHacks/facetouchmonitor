@@ -34,7 +34,6 @@ sourceVideo.onplaying = () => {
 };
 
 
-
 async function load() {
     sourceVideo.width = sourceVideo.videoWidth;
     sourceVideo.height = sourceVideo.videoHeight;
@@ -56,15 +55,15 @@ async function predictLoop(net) {
 
     drawCanvas.style.display = "block";
 
-    let lastFaceArray = [];
+    let lastFaceArray = new Int32Array(sourceVideo.width * sourceVideo.height);
     let faceArray = [], handArray = [];
     let alerts = 0;
+    let alertTimeout = false;
 
     let updateFace = true;
-    setInterval(()=>{
+    setInterval(() => {
         updateFace = !updateFace;
     }, 1000);
-
 
 
     while (isPlaying) {
@@ -75,14 +74,19 @@ async function predictLoop(net) {
         //    return;
 
 
-        const config = {flipHorizontal: flipHorizontal};
-        const segmentation = await net.segmentPersonParts(sourceVideo, config);
-
+        const segmentPersonConfig = {
+            flipHorizontal: flipHorizontal,     // Flip for webcam
+            maxDetections: 1,                    // only look at one person in this model
+            scoreThreshold: 0.4,
+            segmentationThreshold: 0.5,     // 0.3 default 0.7
+            //nmsRadius: 10
+        };
+        const segmentation = await net.segmentPersonParts(sourceVideo, segmentPersonConfig);
 
 
         const faceThreshold = 0.9;
         const handThreshold = 0.5;
-        const touchThreshold = 0.025;
+        const touchThreshold = 0.01;
 
 
         // ToDo: bigger problems if this happens
@@ -93,6 +97,7 @@ async function predictLoop(net) {
 
         draw(segmentation, true, true);
 
+
         //console.log(segmentations);
         //let segmentation = segmentations[0];
 
@@ -101,41 +106,23 @@ async function predictLoop(net) {
         let leftEye = segmentation.allPoses[0].keypoints[1].score > faceThreshold;
         let rightEye = segmentation.allPoses[0].keypoints[2].score > faceThreshold;
 
-        let leftWrist = segmentation.allPoses[0].keypoints[9].score > handThreshold;
-        let rightWrist = segmentation.allPoses[0].keypoints[10].score > handThreshold;
+        // let leftWrist = segmentation.allPoses[0].keypoints[9].score > handThreshold;
+        // let rightWrist = segmentation.allPoses[0].keypoints[10].score > handThreshold;
 
 
         // Check for hands if there is a nose or eyes
         if (nose || leftEye || rightEye) {
 
             faceArray = segmentation.data.map(val => {
-                if (val === 0 || val === 1)
-                    return val;
-                else
-                    return -1;
+                if (val === 0 || val === 1) return val;
+                else return -1;
             });
-
 
             // Get the hand array if you see a wrist point
             handArray = segmentation.data.map(val => {
-                if (val === 10 || val === 11)
-                    return val;
-                else
-                    return -1;
+                if (val === 10 || val === 11) return val;
+                else return -1;
             });
-
-
-            // Check for overlap
-            //if ((nose || leftEye || rightEye) && (leftWrist || rightWrist)) {
-
-            // ToDo: see if there is a better way to initialize lastFaceArray
-            // For the first run
-            if (!lastFaceArray.length) {
-                console.info("initializing lastFaceArray");
-                lastFaceArray = faceArray;
-                continue;
-            }
-
 
             const numPixels = segmentation.width * segmentation.height;
             let facePixels = 0;
@@ -146,26 +133,58 @@ async function predictLoop(net) {
                 if (lastFaceArray[x] > -1)
                     facePixels++;
 
+                // If the hand is overlapping where the face used to be
                 if (lastFaceArray[x] > -1 && handArray[x] > -1)
                     score++;
             }
 
+            let multiFaceArray = arrayToMatrix(faceArray, segmentation.width);
+            let multiHandArray = arrayToMatrix(handArray, segmentation.width);
+            let touchScore = touchingCheck(multiFaceArray, multiHandArray, 5 );
+            score += touchScore;
 
-            if (score > facePixels * touchThreshold) {
-                console.info(` numPixels: ${numPixels} \n facePixels: ${facePixels}\n score: ${score}`);
-                console.info(` facePixels: ${facePixels / numPixels}\n touch: ${score / facePixels}`);
+
+            // Update the old face according to the timer
+            if (updateFace)
+                lastFaceArray = faceArray;
+
+
+            if (score > facePixels * touchThreshold && !alertTimeout) {
+                console.info(` numPixels: ${numPixels} \n facePixels: ${facePixels}\n score: ${score}, touchScore: ${touchScore}\n` +
+                    ` facePixels%: ${facePixels / numPixels}\n touch%: ${score / facePixels}`);
                 alerts++;
                 console.log("alert!!!", alerts);
+                beep(350, 150, 0);
+                alertTimeout = true;
+                setTimeout(()=>{
+                    console.log("resuming alerts");
+                    alertTimeout = false;
+                }, 1000)
             }
-            // console.log(segmentation);
-        }
 
-        if(updateFace)
-            lastFaceArray = faceArray;
+        }
 
     }
 
 }
+
+function touchingCheck(matrix1, matrix2, padding){
+    let count = 0;
+    for (let y = padding; y < matrix1.length - padding; y++)
+        for (let x = padding; x < matrix1[0].length - padding; x++) {
+            if (matrix1[y][x] > -1) {
+                for (let p=0; p<padding; p++){
+                    // if the hand is left or right, above or below the current face segment
+                    if (matrix2[y][x - p] > -1 || matrix2[y][x + p] > -1 ||
+                        matrix2[y - p][x] > -1 || matrix2[y + p][x] > -1) {
+                        count++;
+                    }
+                }
+            }
+        }
+    return count
+}
+
 
 function draw(personSegmentation, drawMask = false, drawPoints = false) {
 
@@ -223,4 +242,32 @@ function drawKeypoints(keypoints, minConfidence, ctx, color = 'aqua', scale = 1)
         ctx.fill();
 
     }
+}
+
+
+function beep(tone, duration) {
+    let audioCtx = new AudioContext;
+    let oscillator = audioCtx.createOscillator();
+    oscillator.frequency.value = tone;
+    oscillator.connect(audioCtx.destination);
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + duration / 1000);
+}
+
+
+function arrayToMatrix(arr, rowLength) {
+    let newArray = [];
+
+    // Check
+    if (arr.length % rowLength > 0 || rowLength < 1) {
+        console.log("array not divisible by rowLength ", arr, rowLength);
+        return
+    }
+
+    let rows = arr.length / rowLength;
+    for (let x = 0; x < rows; x++) {
+        let b = arr.slice(x * rowLength, x * rowLength + rowLength);
+        newArray.push(b);
+    }
+    return newArray;
 }

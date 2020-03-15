@@ -11,7 +11,7 @@
 // Put variables in global scope to make them available to the browser console.
 const constraints = window.constraints = {
     audio: false,
-    video: true
+    video: {height: {exact: 480}, width: {exact: 640}}
 };
 
 function handleSuccess(stream) {
@@ -47,15 +47,9 @@ async function init(e) {
     try {
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         handleSuccess(stream);
-        // e.target.disabled = true;
-        e.target.hidden = true;
     } catch (e) {
         handleError(e);
     }
 }
 
-//
-
-document.querySelector('#startBtn')
-    .addEventListener('click', e => init(e));
 

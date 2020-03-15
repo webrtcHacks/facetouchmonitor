@@ -1,14 +1,9 @@
-//Video element selector
-const sourceVideo = document.querySelector('video');
-const drawCanvas = document.querySelector('canvas');
-// let drawCanvas = document.createElement('canvas');
-
-
 // Canvas setup
 const drawCtx = drawCanvas.getContext('2d');
 
 const flipHorizontal = true;
-let mask = true;
+
+let stop = false;
 
 //for starting events
 let isPlaying = false,
@@ -19,7 +14,9 @@ sourceVideo.onloadedmetadata = () => {
     console.log("video metadata ready");
     gotMetadata = true;
     if (isPlaying)
-        load().then((net) => predictLoop(net));
+        load()
+            .then(net => predictLoop(net))
+            .catch(err => console.error(err));
 };
 
 // Check if the sourceVideo has started playing
@@ -42,16 +39,13 @@ async function load() {
     drawCanvas.width = sourceVideo.videoWidth;
     drawCanvas.height = sourceVideo.videoHeight;
 
-    //drawCanvas.hidden = false;
+    // drawCanvas.hidden = false;
 
-    return await bodyPix.load();
+    userMessage.innerText = "Waiting for Machine Learning model to load...";
+    return await bodyPix.load({multiplier: 0.50});
 }
 
 async function predictLoop(net) {
-
-    if (mask) {
-        //sourceVideo.hidden = true;
-    }
 
     drawCanvas.style.display = "block";
 
@@ -65,11 +59,7 @@ async function predictLoop(net) {
         updateFace = !updateFace;
     }, 1000);
 
-    // Timers
-
-
-
-    while (isPlaying) {
+    while (isPlaying && !stop) {
 
         // ToDo: some kind of stop function??
         // if (sourceVideo.srcObject.getVideoTracks.length === 0)
@@ -79,54 +69,54 @@ async function predictLoop(net) {
         const segmentPersonConfig = {
             flipHorizontal: flipHorizontal,     // Flip for webcam
             maxDetections: 1,                    // only look at one person in this model
-            scoreThreshold: 0.4,
-            segmentationThreshold: 0.5,     // 0.3 default 0.7
+            scoreThreshold: 0.5,                //0.4
+            segmentationThreshold: 0.6,     // 0.3 default 0.7 //changed to default for 0.5 multiplier
             //nmsRadius: 10
         };
         const segmentation = await net.segmentPersonParts(sourceVideo, segmentPersonConfig);
 
+        userMessage.innerText = "Monitoring running";
+        showStats.hidden = false;
+
 
         const faceThreshold = 0.9;
-        const handThreshold = 0.5;
+        // const handThreshold = 0.5;
         const touchThreshold = 0.01;
+        const numPixels = segmentation.width * segmentation.height;
 
 
         // ToDo: bigger problems if this happens
         if (segmentation.allPoses[0] === undefined) {
-            console.error("No segmentation data");
+            console.info("No segmentation data");
             continue;
         }
 
-        draw(segmentation, true, true);
+        draw(segmentation);
 
-
-        //console.log(segmentations);
-        //let segmentation = segmentations[0];
-
-        // ToDo: I am assuming a consistent array order - bad idea
+        // Verify there is a good quality face before doing anything
+        // I am assuming a consistent array order
         let nose = segmentation.allPoses[0].keypoints[0].score > faceThreshold;
         let leftEye = segmentation.allPoses[0].keypoints[1].score > faceThreshold;
         let rightEye = segmentation.allPoses[0].keypoints[2].score > faceThreshold;
 
-        // let leftWrist = segmentation.allPoses[0].keypoints[9].score > handThreshold;
-        // let rightWrist = segmentation.allPoses[0].keypoints[10].score > handThreshold;
-
 
         // Check for hands if there is a nose or eyes
-        if (nose || leftEye || rightEye) {
+        if (nose && (leftEye || rightEye)) {
 
+            // Look for overlaps where the hand is and hte face used to be
+
+            // Create an array of just face values
             faceArray = segmentation.data.map(val => {
                 if (val === 0 || val === 1) return val;
                 else return -1;
             });
 
-            // Get the hand array if you see a wrist point
+            // Get the hand array
             handArray = segmentation.data.map(val => {
                 if (val === 10 || val === 11) return val;
                 else return -1;
             });
 
-            const numPixels = segmentation.width * segmentation.height;
             let facePixels = 0;
             let score = 0;
 
@@ -142,14 +132,13 @@ async function predictLoop(net) {
 
             let multiFaceArray = arrayToMatrix(faceArray, segmentation.width);
             let multiHandArray = arrayToMatrix(handArray, segmentation.width);
-            let touchScore = touchingCheck(multiFaceArray, multiHandArray, 5 );
+            let touchScore = touchingCheck(multiFaceArray, multiHandArray, 10);
             score += touchScore;
 
 
             // Update the old face according to the timer
             if (updateFace)
                 lastFaceArray = faceArray;
-
 
             if (score > facePixels * touchThreshold && !alertTimeout) {
                 console.info(` numPixels: ${numPixels} \n facePixels: ${facePixels}\n score: ${score}, touchScore: ${touchScore}\n` +
@@ -158,7 +147,7 @@ async function predictLoop(net) {
                 console.log("alert!!!", alerts);
                 beep(350, 150, 0);
                 alertTimeout = true;
-                setTimeout(()=>{
+                setTimeout(() => {
                     console.log("resuming alerts");
                     alertTimeout = false;
                 }, 1000)
@@ -172,12 +161,12 @@ async function predictLoop(net) {
 
 }
 
-function touchingCheck(matrix1, matrix2, padding){
+function touchingCheck(matrix1, matrix2, padding) {
     let count = 0;
     for (let y = padding; y < matrix1.length - padding; y++)
         for (let x = padding; x < matrix1[0].length - padding; x++) {
             if (matrix1[y][x] > -1) {
-                for (let p=0; p<padding; p++){
+                for (let p = 0; p < padding; p++) {
                     // if the hand is left or right, above or below the current face segment
                     if (matrix2[y][x - p] > -1 || matrix2[y][x + p] > -1 ||
                         matrix2[y - p][x] > -1 || matrix2[y + p][x] > -1) {
@@ -190,9 +179,9 @@ function touchingCheck(matrix1, matrix2, padding){
 }
 
 
-function draw(personSegmentation, drawMask = false, drawPoints = false) {
+function draw(personSegmentation) {
 
-    if (drawMask) {
+    if (showMaskToggle.checked) {
         let targetSegmentation = personSegmentation;
 
         // Draw a mask of the body segments - useful for debugging
@@ -212,12 +201,12 @@ function draw(personSegmentation, drawMask = false, drawPoints = false) {
 
     }
 
-    if (drawMask === false && drawPoints === true) {
+    if (showMaskToggle.checked === false) {
         // bodyPix.drawMask redraws the canvas. Clear with not
         drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
     }
 
-    if (drawPoints) {
+    if (showPointsToggle.checked) {
         // Show dots
         personSegmentation.allPoses.forEach(pose => {
             if (flipHorizontal) {
@@ -230,8 +219,7 @@ function draw(personSegmentation, drawMask = false, drawPoints = false) {
 
 }
 
-
-function drawKeypoints(keypoints, minConfidence, ctx, color = 'aqua', scale = 1) {
+function drawKeypoints(keypoints, minConfidence, ctx, color = 'aqua') {
     for (let i = 0; i < keypoints.length; i++) {
         const keypoint = keypoints[i];
 
@@ -248,17 +236,7 @@ function drawKeypoints(keypoints, minConfidence, ctx, color = 'aqua', scale = 1)
     }
 }
 
-
-function beep(tone, duration) {
-    let audioCtx = new AudioContext;
-    let oscillator = audioCtx.createOscillator();
-    oscillator.frequency.value = tone;
-    oscillator.connect(audioCtx.destination);
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + duration / 1000);
-}
-
-
+// Helper function to convert an arrow into a matrix for easier image functions
 function arrayToMatrix(arr, rowLength) {
     let newArray = [];
 
@@ -274,42 +252,4 @@ function arrayToMatrix(arr, rowLength) {
         newArray.push(b);
     }
     return newArray;
-}
-
-let touches = 0;
-let lastFrameTime = new Date().getTime();
-let lastTouchTime = false;
-let lastTouchStatus = false;
-
-
-// Update stats
-
-const touchesDisplay = document.querySelector('#touches');
-const lastTouchDisplay = document.querySelector('#lastTouch');
-const fpsDisplay = document.querySelector('#fps');
-
-function updateStats(touched){
-
-    // FPS display
-    let now = new Date().getTime();
-    let fps = 1000/(now-lastFrameTime);
-    lastFrameTime = now;
-    fpsDisplay.innerText = fps.toFixed(2);
-
-    // Touch counter
-    if(touched && lastTouchStatus === false)
-        touches++;
-
-    lastTouchStatus = touched;
-    touchesDisplay.innerText = touches;
-
-    // Last Touch timer
-    if(touched)
-        lastTouchTime = now;
-    if(lastTouchTime)
-        lastTouchDisplay.innerHTML = ((now - lastTouchTime)/1000).toFixed(0);
-    else
-        lastTouchDisplay.innerHTML = "0";
-
-
 }

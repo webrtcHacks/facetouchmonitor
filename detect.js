@@ -159,7 +159,7 @@ async function predictLoop(net) {
                     notify(`You touched your face! That's ${touches+1} times now`);
 
                 alertTimeout = true;
-                
+
                 setTimeout(() => {
                     console.log("resuming alerts");
                     alertTimeout = false;

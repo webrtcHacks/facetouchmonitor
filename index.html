@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="em">
 <head>
+    <meta charset="UTF-8">
     <title>Face Touch Monitor - get alerts when you touch your face</title>
     <link rel="stylesheet" type="text/css" href="style.css">
     <!-- Load TensorFlow.js -->
@@ -13,7 +14,7 @@
 <body>
 <div id="main">
     <canvas></canvas>
-    <video id="myVid" autoplay></video>
+    <video id="myVid" autoplay playsinline></video>
     <div id="content">
         <h1>Face Touch Monitor</h1>
         <h4>Learn to stop touching your face! </h4>
@@ -47,7 +48,7 @@
     <h3>Controls</h3>
     <div id="controls">
         <label for="alertTimeOut">Time between alerts (s)</label>
-        <input type="text" size=4 id="alertTimeOut" name="alertTimeOut" value="1"><br>
+        <input type="text" size=4 id="alertTimeOut" name="alertTimeOut" value="5"><br>
 
         <input type="checkbox" id="beepToggle" name="beepToggle" value="beepToggle" checked >
         <label for="beepToggle">Beep on touch</label><br>

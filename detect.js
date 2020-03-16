@@ -3,7 +3,7 @@ const drawCtx = drawCanvas.getContext('2d');
 
 const flipHorizontal = true;
 
-let stop = false;
+let stopPrediction = false;
 
 //for starting events
 let isPlaying = false,
@@ -15,8 +15,6 @@ sourceVideo.onloadedmetadata = () => {
     gotMetadata = true;
     if (isPlaying)
         load()
-            .then(net => predictLoop(net))
-            .catch(err => console.error(err));
 };
 
 // Check if the sourceVideo has started playing
@@ -25,13 +23,11 @@ sourceVideo.onplaying = () => {
     isPlaying = true;
     if (gotMetadata) {
         load()
-            .then(net => predictLoop(net))
-            .catch(err => console.error(err));
     }
 };
 
 
-async function load() {
+function load(multiplier=0.75, stride=16) {
     sourceVideo.width = sourceVideo.videoWidth;
     sourceVideo.height = sourceVideo.videoHeight;
 
@@ -42,15 +38,22 @@ async function load() {
     // drawCanvas.hidden = false;
 
     userMessage.innerText = "Waiting for Machine Learning model to load...";
-    return await bodyPix.load({multiplier: 0.50});
+
+    console.log(`loading BodyPix with multiplier ${multiplier} and stride ${stride}`);
+
+    bodyPix.load({multiplier: multiplier, stride: stride})
+        .then(net => predictLoop(net))
+        .catch(err => console.error(err));
+
 }
 
 async function predictLoop(net) {
 
+    stopPrediction = false;
+
     drawCanvas.style.display = "block";
 
     let lastFaceArray = new Int32Array(sourceVideo.width * sourceVideo.height);
-    let faceArray = [], handArray = [];
     let alerts = 0;
     let alertTimeout = false;
 
@@ -59,7 +62,7 @@ async function predictLoop(net) {
         updateFace = !updateFace;
     }, 1000);
 
-    while (isPlaying && !stop) {
+    while (isPlaying && !stopPrediction) {
 
         // ToDo: some kind of stop function??
         // if (sourceVideo.srcObject.getVideoTracks.length === 0)
@@ -75,7 +78,7 @@ async function predictLoop(net) {
         };
         const segmentation = await net.segmentPersonParts(sourceVideo, segmentPersonConfig);
 
-        userMessage.innerText = "Monitoring running";
+        userMessage.innerText = "Monitor running";
         showStats.hidden = false;
 
 
@@ -106,13 +109,13 @@ async function predictLoop(net) {
             // Look for overlaps where the hand is and hte face used to be
 
             // Create an array of just face values
-            faceArray = segmentation.data.map(val => {
+            let faceArray = segmentation.data.map(val => {
                 if (val === 0 || val === 1) return val;
                 else return -1;
             });
 
             // Get the hand array
-            handArray = segmentation.data.map(val => {
+            let handArray = segmentation.data.map(val => {
                 if (val === 10 || val === 11) return val;
                 else return -1;
             });
@@ -140,20 +143,28 @@ async function predictLoop(net) {
             if (updateFace)
                 lastFaceArray = faceArray;
 
+            updateStats(alertTimeout);
+
+            // Handle alerts
             if (score > facePixels * touchThreshold && !alertTimeout) {
                 console.info(` numPixels: ${numPixels} \n facePixels: ${facePixels}\n score: ${score}, touchScore: ${touchScore}\n` +
                     ` facePixels%: ${facePixels / numPixels}\n touch%: ${score / facePixels}`);
                 alerts++;
                 console.log("alert!!!", alerts);
-                beep(350, 150, 0);
+
+                // User alerts
+                if (beepToggle.checked)
+                    beep(350, 150, 0);
+                if (notifyToggle.checked)
+                    notify(`You touched your face! That's ${touches+1} times now`);
+
                 alertTimeout = true;
+                
                 setTimeout(() => {
                     console.log("resuming alerts");
                     alertTimeout = false;
-                }, 1000)
+                }, alertTimeoutEntry.value * 1000)
             }
-
-            updateStats(alertTimeout);
 
         }
 
@@ -236,7 +247,7 @@ function drawKeypoints(keypoints, minConfidence, ctx, color = 'aqua') {
     }
 }
 
-// Helper function to convert an arrow into a matrix for easier image functions
+// Helper function to convert an arrow into a matrix for easier pixel proximity functions
 function arrayToMatrix(arr, rowLength) {
     let newArray = [];
 

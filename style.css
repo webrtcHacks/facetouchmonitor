@@ -1,0 +1,52 @@
+video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    /* Mirror the local sourceVideo */
+    transform: scale(-1, 1);            /*For Firefox (& IE) */
+    -webkit-transform: scale(-1, 1);     /*for Chrome & Opera (& Safari) */
+    height: 480px;
+    width: 640px;
+}
+canvas{
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index:0
+}
+div#content{
+    max-width: 600px;
+    margin: 10px
+}
+div#dashboard{
+    position: absolute;
+    top: 0;
+    left: 640px;
+    background-color: ghostwhite;
+    padding: 10px;
+    max-width: 500px;
+}
+div#credits{
+    position: absolute;
+    top: 490px
+}
+div#usageNoteSide{
+    margin-top: 30px;
+}
+p{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+button#start{
+    font-size: x-large;
+    margin: 10px auto;
+
+}
+button#exit{
+    font-size: medium;
+    margin-top: 20px;
+    display: none;
+
+}

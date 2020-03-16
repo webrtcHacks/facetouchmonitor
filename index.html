@@ -2,60 +2,7 @@
 <html lang="em">
 <head>
     <title>Face Touch Monitor - get alerts when you touch your face</title>
-    <style>
-        video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            /* Mirror the local sourceVideo */
-            transform: scale(-1, 1);            /*For Firefox (& IE) */
-            -webkit-transform: scale(-1, 1);     /*for Chrome & Opera (& Safari) */
-            height: 480px;
-            width: 640px;
-        }
-        canvas{
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index:0
-        }
-        div#content{
-            max-width: 600px;
-            margin: 10px
-        }
-        div#dashboard{
-            position: absolute;
-            top: 0;
-            left: 650px;
-            background-color: ghostwhite;
-            padding: 10px;
-        }
-        div#credits{
-            position: absolute;
-            top: 490px
-        }
-        div#usageNoteSide{
-            margin-top: 30px;
-        }
-        p{
-            margin-top: 5px;
-            margin-bottom: 5px;
-        }
-        button#start{
-            font-size: x-large;
-            margin: 10px auto;
-
-        }
-        button#exit{
-            font-size: medium;
-            margin-top: 20px;
-            display: none;
-
-        }
-
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
     <!-- Load TensorFlow.js -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.2"></script>
     <!-- Load BodyPix -->
@@ -83,6 +30,7 @@
         <br>
         <p id="usageNoteMain"><em>Note: this is a quick hack that we'll improve.
             It currently has no depth perception, so a hand in front of your face will set it off.
+            Works best on Chrome. Tested in Edge (Chromium-based) and Firefox. Haven't been able to make it work with Safari yet.
             It usually does not detect as well if you are very close to the camera.
             It will not work well on slower devices or mobile.</em></p>
         <button id="start">Start monitoring</button>
@@ -93,23 +41,32 @@
     <p>Status: <span id="userMessage">Click in the left are activate your webcam.</span></p>
     <div id="statsDiv" hidden>
         <p>Touches:  <span id="touches"></span></p>
-        <p>Last Touch:  <span id="lastTouch"></span> sec ago</p>
+        <p>Last Touch:  <span id="lastTouch"></span></p>
         <p>FPS: <span id="fps"></span></p>
     </div>
     <h3>Controls</h3>
     <div id="controls">
-        <label for="showPoints">Time between alerts (s)</label>
+        <label for="alertTimeOut">Time between alerts (s)</label>
         <input type="text" size=4 id="alertTimeOut" name="alertTimeOut" value="1"><br>
-        <label for="alertTimeOut" value="How long to wait between alerts"></label><br>
 
         <input type="checkbox" id="beepToggle" name="beepToggle" value="beepToggle" checked >
         <label for="beepToggle">Beep on touch</label><br>
+
+        <input type="checkbox" id="notifyToggle" name="notifyToggle" value="notifyToggle" >
+        <label for="notifyToggle">Browser notification on touch</label><br>
 
         <input type="checkbox" id="showMask" name="showMask" value="showMask">
         <label for="showMask">Show the mask</label><em>  Caution! This may harm results</em><br>
 
         <input type="checkbox" id="showPoints" name="showPoints" value="showPoints">
         <label for="showPoints">Show pose points</label><br>
+
+        <p>Trade off speed for accuracy:</p>
+        <button id="highSpeed">Faster</button>
+        <button id="normalSpeed" disabled>Normal</button>
+        <button id="lowerSpeed">More accurate</button>
+        <button id="lowSpeed">Most accurate</button>
+
 
         <button id="exit">Exit / Restart</button>
         <div id="usageNoteSide"></div>

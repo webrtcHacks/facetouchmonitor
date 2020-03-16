@@ -12,13 +12,30 @@ const notifyToggle = document.querySelector('#notifyToggle');
 const alertTimeoutEntry = document.querySelector('#alertTimeOut');
 
 
+function handleSuccess(stream) {
+    const video = document.querySelector('video');
+    console.log(`Using video device: ${stream.getVideoTracks()[0].label}`);
+    video.srcObject = stream;
+}
+
+function handleError(error) {
+    if (error.name === 'ConstraintNotSatisfiedError') {
+        const video = constraints.video;
+        console.error(`The resolution ${video.width.exact}x${video.height.exact} px is not supported by your device.`);
+    } else if (error.name === 'PermissionDeniedError') {
+        console.error("User denied access to media devices");
+    }
+    console.error(`getUserMedia error: ${error.name}`, error);
+}
 
 exitButton.addEventListener('click', e => window.location.reload());
 document.querySelector('#main').addEventListener('click', e => {
     document.querySelector('#content').hidden = true;
     exitButton.style.display = "block";
     document.querySelector("div#usageNoteSide").innerHTML = document.querySelector('#usageNoteMain').innerHTML;
-    gum();
+    navigator.mediaDevices.getUserMedia({video: true})
+        .then(stream => handleSuccess)
+        .catch(err => console.log(err))
 });
 
 

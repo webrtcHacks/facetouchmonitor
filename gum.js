@@ -1,10 +1,4 @@
-// source: https://github.com/webrtc/samples/blob/gh-pages/src/content/getusermedia/gum/js/main.js
 'use strict';
-
-const constraints = window.constraints = {
-    audio: false,
-    video: {height: {exact: 480}, width: {exact: 640}}
-};
 
 function handleSuccess(stream) {
     const video = document.querySelector('video');
@@ -12,6 +6,7 @@ function handleSuccess(stream) {
     video.srcObject = stream;
 }
 
+// ToDo: Use these to guide the user on error
 function handleError(error) {
     if (error.name === 'ConstraintNotSatisfiedError') {
         const video = constraints.video;
@@ -23,10 +18,15 @@ function handleError(error) {
 }
 
 
-async function init(e) {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints)
-        .then(stream => handleSuccess)
-        .catch(err => console.log(err))
+function gum() {
+    const constraints = window.constraints = {
+        audio: false,
+        video: {height: {exact: 480}, width: {exact: 640}}
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => handleSuccess(stream))
+        .catch(err => handleError(err))
 }
 
 

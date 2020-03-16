@@ -18,7 +18,7 @@ document.querySelector('#main').addEventListener('click', e => {
     document.querySelector('#content').hidden = true;
     exitButton.style.display = "block";
     document.querySelector("div#usageNoteSide").innerHTML = document.querySelector('#usageNoteMain').innerHTML;
-    init().catch(e => console.error(e));
+    gum();
 });
 
 

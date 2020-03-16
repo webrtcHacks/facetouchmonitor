@@ -1,11 +1,6 @@
 // source: https://github.com/webrtc/samples/blob/gh-pages/src/content/getusermedia/gum/js/main.js
 'use strict';
 
-const constraints = window.constraints = {
-    audio: false,
-    video: {height: {exact: 480}, width: {exact: 640}}
-};
-
 function handleSuccess(stream) {
     const video = document.querySelector('video');
     console.log(`Using video device: ${stream.getVideoTracks()[0].label}`);
@@ -22,9 +17,13 @@ function handleError(error) {
     console.error(`getUserMedia error: ${error.name}`, error);
 }
 
+function gum() {
+    const constraints = window.constraints = {
+        audio: false,
+        video: {height: {exact: 480}, width: {exact: 640}}
+    };
 
-async function init(e) {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints)
+    navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => handleSuccess)
         .catch(err => console.log(err))
 }

@@ -1,17 +1,27 @@
-//Video element selector
+// element selectors
 const sourceVideo = document.querySelector('video');
 const drawCanvas = document.querySelector('canvas');
+
+// Stats panel
+const userMessage = document.querySelector('#userMessage');
+const showStats = document.querySelector('#statsDiv');
+
+// controls
 const showMaskToggle = document.querySelector('#showMask');
 const showPointsToggle = document.querySelector('#showPoints');
-const showStats = document.querySelector('#statsDiv');
-const userMessage = document.querySelector('#userMessage');
-const exitButton = document.querySelector('button#exit');
-
 const beepToggle = document.querySelector('#beepToggle');
 const notifyToggle = document.querySelector('#notifyToggle');
 const alertTimeoutEntry = document.querySelector('#alertTimeOut');
+const resetButton = document.querySelector('button#reset');
+
+// Model control buttons
+const fastButton = document.querySelector('button#highSpeed');
+const normalButton = document.querySelector('button#normalSpeed');
+const slowerButton = document.querySelector('button#lowerSpeed');
+const slowButton = document.querySelector('button#lowSpeed');
 
 
+// Get video camera
 function handleSuccess(stream) {
     const video = document.querySelector('video');
     console.log(`Using video device: ${stream.getVideoTracks()[0].label}`);
@@ -20,27 +30,28 @@ function handleSuccess(stream) {
 
 function handleError(error) {
     if (error.name === 'ConstraintNotSatisfiedError') {
-        const video = constraints.video;
-        console.error(`The resolution ${video.width.exact}x${video.height.exact} px is not supported by your device.`);
+        console.error(`The resolution requested is not supported by your device.`);
     } else if (error.name === 'PermissionDeniedError') {
         console.error("User denied access to media devices");
     }
     console.error(`getUserMedia error: ${error.name}`, error);
 }
 
-exitButton.addEventListener('click', e => window.location.reload());
 document.querySelector('#main').addEventListener('click', e => {
     document.querySelector('#content').hidden = true;
-    exitButton.style.display = "block";
+    resetButton.style.display = "block";
     document.querySelector("div#usageNoteSide").innerHTML = document.querySelector('#usageNoteMain').innerHTML;
-    navigator.mediaDevices.getUserMedia({video: true})
-        .then(stream => handleSuccess)
-        .catch(err => console.log(err))
+    navigator.mediaDevices.getUserMedia({video: { width: 640, height: 480}})
+        .then(handleSuccess)
+        .catch(handleError)
 });
 
 
-// Update stats
+// Refresh page
+resetButton.addEventListener('click', e => window.location.reload());
 
+
+// Update stats
 
 let touches = 0;
 let lastFrameTime = new Date().getTime();
@@ -76,6 +87,7 @@ function updateStats(touched){
 }
 
 
+// Beep tone
 function beep(tone, duration) {
     let audioCtx = new AudioContext;
     let oscillator = audioCtx.createOscillator();
@@ -85,47 +97,53 @@ function beep(tone, duration) {
     oscillator.stop(audioCtx.currentTime + duration / 1000);
 }
 
+function enableDashboard(){
 
-// Model controls
-const fastButton = document.querySelector('button#highSpeed');
-const normalButton = document.querySelector('button#normalSpeed');
-const slowerButton = document.querySelector('button#lowerSpeed');
-const slowButton = document.querySelector('button#lowSpeed');
+    drawCanvas.style.display = "block";
+    userMessage.innerText = "Monitor running";
+    showStats.hidden = false;
+
+    fastButton.disabled = false;
+    normalButton.disabled = true;
+    slowerButton.disabled = false;
+    slowButton.disabled = false;
+
+}
 
 // Adjust BodyPix model settings
 
 fastButton.addEventListener('click', e => {
-    slowButton.disabled = false;
-    slowerButton.disabled = false;
-    normalButton.disabled = false;
     fastButton.disabled = true;
+    normalButton.disabled = false;
+    slowerButton.disabled = false;
+    slowButton.disabled = false;
     stopPrediction = true;
     load(0.5, 16);
 });
 
 normalButton.addEventListener('click', e => {
-    slowButton.disabled = false;
-    slowerButton.disabled = false;
-    normalButton.disabled = true;
     fastButton.disabled = false;
+    normalButton.disabled = true;
+    slowerButton.disabled = false;
+    slowButton.disabled = false;
     stopPrediction = true;
     load(0.75, 16);
 });
 
 slowerButton.addEventListener('click', e => {
-    slowButton.disabled = false;
-    slowerButton.disabled = true;
-    normalButton.disabled = false;
     fastButton.disabled = false;
+    normalButton.disabled = false;
+    slowerButton.disabled = true;
+    slowButton.disabled = false;
     stopPrediction = true;
     load(.75, 8);
 });
 
 slowButton.addEventListener('click', e => {
-    slowButton.disabled = true;
-    slowerButton.disabled = false;
-    normalButton.disabled = false;
     fastButton.disabled = false;
+    normalButton.disabled = false;
+    slowerButton.disabled = false;
+    slowButton.disabled = true;
     stopPrediction = true;
     load(1, 8);
 });

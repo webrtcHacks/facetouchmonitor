@@ -1,11 +1,9 @@
 // Canvas setup
 const drawCtx = drawCanvas.getContext('2d');
 
+// Global flags
 const flipHorizontal = true;
-
 let stopPrediction = false;
-
-//for starting events
 let isPlaying = false,
     gotMetadata = false;
 
@@ -26,7 +24,6 @@ sourceVideo.onplaying = () => {
     }
 };
 
-
 function load(multiplier=0.75, stride=16) {
     sourceVideo.width = sourceVideo.videoWidth;
     sourceVideo.height = sourceVideo.videoHeight;
@@ -35,8 +32,6 @@ function load(multiplier=0.75, stride=16) {
     drawCanvas.width = sourceVideo.videoWidth;
     drawCanvas.height = sourceVideo.videoHeight;
 
-    // drawCanvas.hidden = false;
-
     userMessage.innerText = "Waiting for Machine Learning model to load...";
 
     console.log(`loading BodyPix with multiplier ${multiplier} and stride ${stride}`);
@@ -44,19 +39,19 @@ function load(multiplier=0.75, stride=16) {
     bodyPix.load({multiplier: multiplier, stride: stride})
         .then(net => predictLoop(net))
         .catch(err => console.error(err));
-
 }
 
 async function predictLoop(net) {
 
     stopPrediction = false;
 
-    drawCanvas.style.display = "block";
-
     let lastFaceArray = new Int32Array(sourceVideo.width * sourceVideo.height);
     let alerts = 0;
     let alertTimeout = false;
 
+    enableDashboard(); // Show the dashboard
+
+    // Timer to update the face mask
     let updateFace = true;
     setInterval(() => {
         updateFace = !updateFace;
@@ -64,23 +59,14 @@ async function predictLoop(net) {
 
     while (isPlaying && !stopPrediction) {
 
-        // ToDo: some kind of stop function??
-        // if (sourceVideo.srcObject.getVideoTracks.length === 0)
-        //    return;
-
-
+        // BodyPix setup
         const segmentPersonConfig = {
             flipHorizontal: flipHorizontal,     // Flip for webcam
-            maxDetections: 1,                    // only look at one person in this model
-            scoreThreshold: 0.5,                //0.4
-            segmentationThreshold: 0.6,     // 0.3 default 0.7 //changed to default for 0.5 multiplier
-            //nmsRadius: 10
+            maxDetections: 1,                   // only look at one person in this model
+            scoreThreshold: 0.5,
+            segmentationThreshold: 0.6,         // default is 0.7
         };
         const segmentation = await net.segmentPersonParts(sourceVideo, segmentPersonConfig);
-
-        userMessage.innerText = "Monitor running";
-        showStats.hidden = false;
-
 
         const faceThreshold = 0.9;
         // const handThreshold = 0.5;
@@ -88,12 +74,13 @@ async function predictLoop(net) {
         const numPixels = segmentation.width * segmentation.height;
 
 
-        // ToDo: bigger problems if this happens
+        // skip if noting is there
         if (segmentation.allPoses[0] === undefined) {
-            console.info("No segmentation data");
+            // console.info("No segmentation data");
             continue;
         }
 
+        // Draw the data to canvas
         draw(segmentation);
 
         // Verify there is a good quality face before doing anything
@@ -106,7 +93,7 @@ async function predictLoop(net) {
         // Check for hands if there is a nose or eyes
         if (nose && (leftEye || rightEye)) {
 
-            // Look for overlaps where the hand is and hte face used to be
+            // Look for overlaps where the hand is and the face used to be
 
             // Create an array of just face values
             let faceArray = segmentation.data.map(val => {
@@ -123,8 +110,9 @@ async function predictLoop(net) {
             let facePixels = 0;
             let score = 0;
 
-
             for (let x = 0; x < lastFaceArray.length; x++) {
+
+                // Count the number of face pixels
                 if (lastFaceArray[x] > -1)
                     facePixels++;
 
@@ -172,6 +160,7 @@ async function predictLoop(net) {
 
 }
 
+// Checks if there is a face pixel above, below, left or right to this pixel
 function touchingCheck(matrix1, matrix2, padding) {
     let count = 0;
     for (let y = padding; y < matrix1.length - padding; y++)
@@ -189,7 +178,7 @@ function touchingCheck(matrix1, matrix2, padding) {
     return count
 }
 
-
+// Use the bodyPix draw API's
 function draw(personSegmentation) {
 
     if (showMaskToggle.checked) {
@@ -212,24 +201,25 @@ function draw(personSegmentation) {
 
     }
 
+    // drawMask clears the canvas, drawKeypoints doesn't
     if (showMaskToggle.checked === false) {
         // bodyPix.drawMask redraws the canvas. Clear with not
         drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
     }
 
+    // Show dots from pose detection
     if (showPointsToggle.checked) {
-        // Show dots
         personSegmentation.allPoses.forEach(pose => {
             if (flipHorizontal) {
                 pose = bodyPix.flipPoseHorizontal(pose, personSegmentation.width);
             }
-            drawKeypoints(pose.keypoints, 0.5, drawCtx);
+            drawKeypoints(pose.keypoints, 0.9, drawCtx);
         });
     }
 
-
 }
 
+// Draw dots
 function drawKeypoints(keypoints, minConfidence, ctx, color = 'aqua') {
     for (let i = 0; i < keypoints.length; i++) {
         const keypoint = keypoints[i];

@@ -30,21 +30,23 @@ div#dashboard{
 }
 div#credits{
     position: absolute;
-    top: 490px
+    top: 500px;
 }
 div#usageNoteSide{
     margin-top: 30px;
 }
-p{
+p, h4{
     margin-top: 5px;
     margin-bottom: 5px;
 }
 button#start{
     font-size: x-large;
-    margin: 10px auto;
+    padding: 5px;
+    margin: 10px 200px auto;
+    align-self: center;
 
 }
-button#exit{
+button#reset{
     font-size: medium;
     margin-top: 20px;
     display: none;

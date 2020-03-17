@@ -16,29 +16,38 @@
     <video id="myVid" autoplay playsinline></video>
     <div id="content">
         <h1>Face Touch Monitor</h1>
-        <h4>Learn to stop touching your face! </h4>
+        <h4>See how often you touch your face and learn to stop! </h4>
         <p>
-            This page counts when you touch your face and optionally alerts you.
-            The reminders will help making you aware so you can train yourself to stop accidental face touching.
+            In addition to washing your hands often,
+            the <a href="https://www.cdc.gov/coronavirus/2019-ncov/prepare/prevention.html">CDC</a> recommends that you
+            avoid touching your eyes, nose, and mouth with unwashed hands. This can be hard to do without a reminder.
+        </p>
+        <p>
+            This page uses your webcam and computer vision to count when you touch your face.
+            Set beep alerts or get a browser notification when you do.
+            The reminders can you train yourself to stop accidental face touching.
             Just keep this page running in the background as you use your computer.
         </p>
         <p>
-            No information is shared externally.
             Machine learning on your image is done 100% locally in your browser.
+            No information is shared externally.
         </p>
         <p>Click anywhere to get started.</p>
-        <br>
-        <p id="usageNoteMain"><em>Note: this is a quick hack that we'll improve.
-            It currently has no depth perception, so a hand in front of your face will set it off.
-            Works best on Chrome. Tested in Edge (Chromium-based) and Firefox. Haven't been able to make it work with Safari yet.
-            It usually does not detect as well if you are very close to the camera.
-            It will not work well on slower devices or mobile.</em></p>
         <button id="start">Start monitoring</button>
+        <div id="usageNoteMain">
+        <h4>Usage notes</h4>
+        <p> This is a quick hack that we'll improve.
+            It has no depth perception, so a hand in front of your face will set it off.
+            This works best on Chrome and has been tested in the new Edge and Firefox.
+            I haven't been able to make it work with Safari yet.
+            It usually does not detect as well if you are very close to the camera.
+            It will not work well on slower devices or mobile.</p>
+        </div>
     </div>
 </div>
 <div id="dashboard">
-    <h3>Stats</h3>
-    <p>Status: <span id="userMessage">Click in the left are activate your webcam.</span></p>
+    <h3>Statistics</h3>
+    <p>Status: <span id="userMessage">Click to the left to activate your webcam.</span></p>
     <div id="statsDiv" hidden>
         <p>Touches:  <span id="touches"></span></p>
         <p>Last Touch:  <span id="lastTouch"></span></p>
@@ -56,25 +65,27 @@
         <label for="notifyToggle">Browser notification on touch</label><br>
 
         <input type="checkbox" id="showMask" name="showMask" value="showMask">
-        <label for="showMask">Show the mask</label><em>  Caution! This may harm results</em><br>
+        <label for="showMask">Display the segmentation mask</label><br>
 
         <input type="checkbox" id="showPoints" name="showPoints" value="showPoints">
-        <label for="showPoints">Show pose points</label><br>
+        <label for="showPoints">Display detection points</label><br>
 
         <p>Trade off speed for accuracy:</p>
-        <button id="highSpeed">Faster</button>
+        <button id="highSpeed" disabled>Faster</button>
         <button id="normalSpeed" disabled>Normal</button>
-        <button id="lowerSpeed">More accurate</button>
-        <button id="lowSpeed">Most accurate</button>
+        <button id="lowerSpeed" disabled>More accurate</button>
+        <button id="lowSpeed" disabled>Most accurate</button>
 
 
-        <button id="exit">Exit / Restart</button>
+        <button id="reset">Exit / Restart</button>
         <div id="usageNoteSide"></div>
     </div>
 </div>
 <div id="credits">
     <p>Brought to you by <a href="https://webrtcHacks.com">webrtcHacks</a>.
-        Powered by <a href="https://github.com/tensorflow/tfjs">tensorflow.js</a>
+        Powered by <a href="https://github.com/tensorflow/tfjs">tensorflow.js</a>.<br>
+        See the full source code on <a href="https://github.com/webrtchacks/facetouchmonitor">github</a>.
+        Read the post about  <a href="https://webrtchacks">how it works</a>.
     </p>
 </div>
 <script src="ui-helper.js"></script>

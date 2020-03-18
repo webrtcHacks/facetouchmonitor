@@ -1,10 +1,17 @@
 // element selectors
 const sourceVideo = document.querySelector('video');
 const drawCanvas = document.querySelector('canvas');
+const creditsDiv = document.querySelector('#credits');
 
 // Stats panel
 const userMessage = document.querySelector('#userMessage');
 const showStats = document.querySelector('#statsDiv');
+
+const touchesDisplay = document.querySelector('#touches');
+const lastTouchDisplay = document.querySelector('#lastTouch');
+const perHourDisplay = document.querySelector('#perHour');
+const fpsDisplay = document.querySelector('#fps');
+
 
 // controls
 const showMaskToggle = document.querySelector('#showMask');
@@ -40,15 +47,42 @@ function handleError(error) {
 document.querySelector('#main').addEventListener('click', e => {
     document.querySelector('#content').hidden = true;
     resetButton.style.display = "block";
+
+    // ToDo: learn proper CSS
+    // Move the credits down
+    creditsDiv.style.position = "absolute";
+    creditsDiv.style.top = "500px";
+
     document.querySelector("div#usageNoteSide").innerHTML = document.querySelector('#usageNoteMain').innerHTML;
-    navigator.mediaDevices.getUserMedia({video: { width: 640, height: 480}})
+    navigator.mediaDevices.getUserMedia({video: {width: 640, height: 480}})
         .then(handleSuccess)
         .catch(handleError)
+
+
 });
 
 
 // Refresh page
 resetButton.addEventListener('click', e => window.location.reload());
+
+// Initialize the dashboard
+function enableDashboard(initial=false) {
+
+    drawCanvas.style.display = "block";
+    userMessage.innerText = "Monitor running";
+    showStats.hidden = false;
+
+    startTime = new Date().getTime();
+
+    if(initial){
+        fastButton.disabled = false;
+        normalButton.disabled = false;
+        slowerButton.disabled = false;
+        slowButton.disabled = false;
+    }
+
+    firstRun = false;
+}
 
 
 // Update stats
@@ -57,33 +91,36 @@ let touches = 0;
 let lastFrameTime = new Date().getTime();
 let lastTouchTime = false;
 let lastTouchStatus = false;
+let startTime;
 
-const touchesDisplay = document.querySelector('#touches');
-const lastTouchDisplay = document.querySelector('#lastTouch');
-const fpsDisplay = document.querySelector('#fps');
-
-function updateStats(touched){
+function updateStats(touched) {
 
     // FPS display
     let now = new Date().getTime();
-    let fps = 1000/(now-lastFrameTime);
+    let fps = 1000 / (now - lastFrameTime);
+
     lastFrameTime = now;
-    fpsDisplay.innerText = fps.toFixed(2);
+    fpsDisplay.innerText = fps.toFixed(1);
 
     // Touch counter
-    if(touched && lastTouchStatus === false)
+    if (touched && lastTouchStatus === false)
         touches++;
 
     lastTouchStatus = touched;
     touchesDisplay.innerText = touches;
 
     // Last Touch timer
-    if(touched)
+    if (touched)
         lastTouchTime = now;
-    if(lastTouchTime)
-        lastTouchDisplay.innerHTML = ((now - lastTouchTime)/1000).toFixed(0) + " sec ago";
-    else
+    if (lastTouchTime) {
+        lastTouchDisplay.innerHTML = ((now - lastTouchTime) / 1000).toFixed(0) + " sec ago";
+
+        // 1 / ((new Date().getTime() - startTime)/(60*1000*60))
+        let touchRate = (touches / ((now - startTime) / (60 * 60 * 1000))).toFixed(2);
+        perHourDisplay.innerHTML = touchRate;
+    } else {
         lastTouchDisplay.innerHTML = "None yet";
+    }
 }
 
 
@@ -97,18 +134,6 @@ function beep(tone, duration) {
     oscillator.stop(audioCtx.currentTime + duration / 1000);
 }
 
-function enableDashboard(){
-
-    drawCanvas.style.display = "block";
-    userMessage.innerText = "Monitor running";
-    showStats.hidden = false;
-
-    fastButton.disabled = false;
-    normalButton.disabled = true;
-    slowerButton.disabled = false;
-    slowButton.disabled = false;
-
-}
 
 // Adjust BodyPix model settings
 
@@ -151,7 +176,7 @@ slowButton.addEventListener('click', e => {
 
 // Notification functions
 
-function checkNotificationPermission(){
+function checkNotificationPermission() {
 
     if (Notification.permission !== "granted")
         Notification.requestPermission().then(permission => {
@@ -182,15 +207,14 @@ function notify(message) {
 
     // Ask the user for permission first
     else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then( permission=> {
+        Notification.requestPermission().then(permission => {
             // If the user accepts, let's create a notification
             if (permission === "granted")
                 new Notification(message);
             else
                 notifyToggle.disabled = true;
         });
-    }
-    else
+    } else
         console.log("notifications rejected")
 
 }

@@ -49,8 +49,9 @@
     <h3>Statistics</h3>
     <p>Status: <span id="userMessage">Click to the left to activate your webcam.</span></p>
     <div id="statsDiv" hidden>
-        <p>Touches:  <span id="touches"></span></p>
-        <p>Last Touch:  <span id="lastTouch"></span></p>
+        <p>Face touches:  <span id="touches"></span></p>
+        <p>Last touch:  <span id="lastTouch"></span></p>
+        <p>Touch rate per hour: <span id="perHour"></span></p>
         <p>FPS: <span id="fps"></span></p>
     </div>
     <h3>Controls</h3>
@@ -90,5 +91,11 @@
 </div>
 <script src="ui-helper.js"></script>
 <script src="detect.js"></script>
+
+<!-- If this is popular I will put more effort into it -->
+<script src="/__/firebase/7.11.0/firebase-app.js"></script>
+<script src="/__/firebase/7.11.0/firebase-analytics.js"></script>
+<script src="/__/firebase/init.js"></script>
+<script>firebase.analytics();</script>
 </body>
 </html>

@@ -6,6 +6,7 @@ const flipHorizontal = true;
 let stopPrediction = false;
 let isPlaying = false,
     gotMetadata = false;
+let firstRun = true;
 
 // check if metadata is ready - we need the sourceVideo size
 sourceVideo.onloadedmetadata = () => {
@@ -49,7 +50,7 @@ async function predictLoop(net) {
     let alerts = 0;
     let alertTimeout = false;
 
-    enableDashboard(); // Show the dashboard
+    enableDashboard(firstRun); // Show the dashboard
 
     // Timer to update the face mask
     let updateFace = true;

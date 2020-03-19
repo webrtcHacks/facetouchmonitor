@@ -219,10 +219,3 @@ function notify(message) {
 
 }
 
-sourceVideo.addEventListener('click', () => {
-    if (!document.pictureInPictureElement) {
-        sourceVideo.requestPictureInPicture();
-    } else {
-        document.exitPictureInPicture()
-    }
-});

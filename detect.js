@@ -37,7 +37,7 @@ function load(multiplier=0.75, stride=16) {
 
     console.log(`loading BodyPix with multiplier ${multiplier} and stride ${stride}`);
 
-    bodyPix.load({multiplier: multiplier, stride: stride})
+    bodyPix.load({multiplier: multiplier, stride: stride, quantBytes: 4})
         .then(net => predictLoop(net))
         .catch(err => console.error(err));
 }
@@ -69,9 +69,10 @@ async function predictLoop(net) {
         };
         const segmentation = await net.segmentPersonParts(sourceVideo, segmentPersonConfig);
 
+
         const faceThreshold = 0.9;
-        // const handThreshold = 0.5;
         const touchThreshold = 0.01;
+
         const numPixels = segmentation.width * segmentation.height;
 
 
@@ -186,6 +187,8 @@ function draw(personSegmentation) {
         let targetSegmentation = personSegmentation;
 
         // Draw a mask of the body segments - useful for debugging
+
+        // Just show the face and hand parts
         targetSegmentation.data = personSegmentation.data.map(val => {
             if (val !== 0 && val !== 1 && val !== 10 && val !== 11)
                 return -1;

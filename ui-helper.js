@@ -1,7 +1,7 @@
 // element selectors
 const sourceVideo = document.querySelector('video');
 const drawCanvas = document.querySelector('canvas');
-const creditsDiv = document.querySelector('#credits');
+const loader = document.getElementById('loader');
 
 // Stats panel
 const userMessage = document.querySelector('#userMessage');
@@ -44,14 +44,12 @@ function handleError(error) {
     console.error(`getUserMedia error: ${error.name}`, error);
 }
 
-document.querySelector('#main').addEventListener('click', e => {
+document.querySelector('#start').addEventListener('click', e => {
     document.querySelector('#content').hidden = true;
     resetButton.style.display = "block";
 
-    // ToDo: learn proper CSS
-    // Move the credits down
-    creditsDiv.style.position = "absolute";
-    creditsDiv.style.top = "500px";
+    // ToDo: learn proper CSS - same lol
+    loader.style.display = "block";
 
     document.querySelector("div#usageNoteSide").innerHTML = document.querySelector('#usageNoteMain').innerHTML;
     navigator.mediaDevices.getUserMedia({video: {width: 640, height: 480}})
@@ -71,6 +69,7 @@ function enableDashboard(initial=false) {
     drawCanvas.style.display = "block";
     userMessage.innerText = "Monitor running";
     showStats.hidden = false;
+    loader.style.display = "none";
 
     startTime = new Date().getTime();
 

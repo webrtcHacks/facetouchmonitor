@@ -1,3 +1,14 @@
+body {
+    background: #fafafa;
+    padding: 0px;
+    margin: 0px;
+    color: #000a12;
+    font-family: 'Roboto', sans-serif;
+    overflow-x: hidden;
+}
+a {
+    color: #455a64;
+}
 video {
     position: absolute;
     top: 0;
@@ -6,33 +17,49 @@ video {
     /* Mirror the local sourceVideo */
     transform: scale(-1, 1);            /*For Firefox (& IE) */
     -webkit-transform: scale(-1, 1);     /*for Chrome & Opera (& Safari) */
-    height: 480px;
-    width: 640px;
+    width: 70%;
+    height: auto;
 }
 canvas{
     display: none;
-    position: absolute;
+    position: relative;
     top: 0;
     left: 0;
-    z-index:0
+    z-index:0;
 }
 div#content{
+    position: relative;
+    float: left;
+    width: 70%;
     max-width: 600px;
-    margin: 10px
+    margin: 10px;
+    margin-bottom: 0px;
+    padding: 30px;
 }
 div#dashboard{
     position: absolute;
+    float: right;
     top: 0;
-    left: 640px;
-    background-color: ghostwhite;
-    padding: 10px;
-    max-width: 500px;
+    right: 0px;
+    width: 30%;
+    height: 100%;
+    /* left: 640px; */
+    background-color: #546e7a;
+    color: #eceff1;
 }
-/*div#credits{
+div#dashboardContent {
+    padding: 30px;
+}
+div#credits{
     position: absolute;
-    top: 500px;
-
-}*/
+    float: left;
+    bottom: 0;
+    width: 70%;
+    background: #819ca9;
+}
+div#creditContent {
+    padding: 30px;
+}
 div#usageNoteSide{
     margin-top: 30px;
 }
@@ -42,14 +69,56 @@ p, h4{
 }
 button#start{
     font-size: x-large;
-    padding: 5px;
-    margin: 10px 200px auto;
+    padding: 30px;
+    margin: 20px 0px 20px 0px;
     align-self: center;
-
+    background: #00838f;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+}
+button{
+    cursor: pointer;
 }
 button#reset{
     font-size: medium;
     margin-top: 20px;
     display: none;
 
+}
+div#loader {
+    display: none;
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    margin-left: 30%;
+    margin-top: 10%;
+    margin-bottom: 10%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 1100px) {
+    div#dashboard{
+        position: relative;
+        float: left;
+        height: auto;
+        width: 100%;
+    }
+    video {
+        width: 100%;
+    }
+    div#credits{
+        width: 100%;
+        position: relative;
+        float: left;
+        margin-top: 0px;
+    }
 }

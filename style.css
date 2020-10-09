@@ -1,13 +1,13 @@
 body {
     background: #fafafa;
-    padding: 0px;
-    margin: 0px;
+    padding: 0;
+    margin: 0;
     color: #000a12;
     font-family: 'Roboto', sans-serif;
     overflow-x: hidden;
 }
 a {
-    color: #455a64;
+    color: #3a4451;
 }
 video {
     position: absolute;
@@ -26,24 +26,23 @@ canvas{
     top: 0;
     left: 0;
     z-index:0;
+    width: 70%;
 }
 div#content{
     position: relative;
     float: left;
     width: 70%;
     max-width: 600px;
-    margin: 10px;
-    margin-bottom: 0px;
+    margin: 10px 10px 0;
     padding: 30px;
 }
 div#dashboard{
     position: absolute;
     float: right;
     top: 0;
-    right: 0px;
+    right: 0;
     width: 30%;
     height: 100%;
-    /* left: 640px; */
     background-color: #546e7a;
     color: #eceff1;
 }
@@ -70,10 +69,10 @@ p, h4{
 button#start{
     font-size: x-large;
     padding: 30px;
-    margin: 20px 0px 20px 0px;
+    margin: 20px 0 20px 0;
     align-self: center;
+    color: #ffffff;
     background: #00838f;
-    color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -119,6 +118,6 @@ div#loader {
         width: 100%;
         position: relative;
         float: left;
-        margin-top: 0px;
+        margin-top: 0;
     }
 }

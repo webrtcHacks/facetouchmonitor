@@ -44,15 +44,16 @@ function handleError(error) {
     console.error(`getUserMedia error: ${error.name}`, error);
 }
 
-document.querySelector('#start').addEventListener('click', e => {
+document.querySelector('#start').addEventListener('click', () => {
     document.querySelector('#content').hidden = true;
     resetButton.style.display = "block";
 
-    // ToDo: learn proper CSS - same lol
+    // ToDo: learn proper CSS
     loader.style.display = "block";
 
     document.querySelector("div#usageNoteSide").innerHTML = document.querySelector('#usageNoteMain').innerHTML;
-    navigator.mediaDevices.getUserMedia({video: {width: 640, height: 480}})
+    // Fix constraints to 640 px width; higher resolutions are more accurate but slower
+    navigator.mediaDevices.getUserMedia({video: {width: 640}, audio: false})
         .then(handleSuccess)
         .catch(handleError)
 
@@ -61,7 +62,7 @@ document.querySelector('#start').addEventListener('click', e => {
 
 
 // Refresh page
-resetButton.addEventListener('click', e => window.location.reload());
+resetButton.addEventListener('click', () => window.location.reload());
 
 // Initialize the dashboard
 function enableDashboard(initial=false) {
@@ -115,8 +116,7 @@ function updateStats(touched) {
         lastTouchDisplay.innerHTML = ((now - lastTouchTime) / 1000).toFixed(0) + " sec ago";
 
         // 1 / ((new Date().getTime() - startTime)/(60*1000*60))
-        let touchRate = (touches / ((now - startTime) / (60 * 60 * 1000))).toFixed(2);
-        perHourDisplay.innerHTML = touchRate;
+        perHourDisplay.innerHTML = (touches / ((now - startTime) / (60 * 60 * 1000))).toFixed(2);
     } else {
         lastTouchDisplay.innerHTML = "None yet";
     }
@@ -136,7 +136,7 @@ function beep(tone, duration) {
 
 // Adjust BodyPix model settings
 
-fastButton.addEventListener('click', e => {
+fastButton.addEventListener('click', () => {
     fastButton.disabled = true;
     normalButton.disabled = false;
     slowerButton.disabled = false;
@@ -145,7 +145,7 @@ fastButton.addEventListener('click', e => {
     load(0.5, 16);
 });
 
-normalButton.addEventListener('click', e => {
+normalButton.addEventListener('click', () => {
     fastButton.disabled = false;
     normalButton.disabled = true;
     slowerButton.disabled = false;
@@ -154,7 +154,7 @@ normalButton.addEventListener('click', e => {
     load(0.75, 16);
 });
 
-slowerButton.addEventListener('click', e => {
+slowerButton.addEventListener('click', () => {
     fastButton.disabled = false;
     normalButton.disabled = false;
     slowerButton.disabled = true;
@@ -163,7 +163,7 @@ slowerButton.addEventListener('click', e => {
     load(.75, 8);
 });
 
-slowButton.addEventListener('click', e => {
+slowButton.addEventListener('click', () => {
     fastButton.disabled = false;
     normalButton.disabled = false;
     slowerButton.disabled = false;
@@ -189,8 +189,7 @@ function checkNotificationPermission() {
 }
 
 // Prompt the user to allow notifications the first time they click
-notifyToggle.addEventListener('click', e => checkNotificationPermission()
-);
+notifyToggle.addEventListener('click', () => checkNotificationPermission());
 
 // Browser notifications on touches
 function notify(message) {

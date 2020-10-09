@@ -36,3 +36,6 @@ It only takes seconds to [try yourself](https://facetouchmonitor.com).
 * If the FPS drops below 5 FPS, try using the _Fastest_ setting
 * It works best if you can keep the browser tab in the foreground so background throttling is not invoked
 
+### Pull Request ♥ 
+
+The CSS fixes from [dharmadeveloper108](https://github.com/dharmadeveloper108) are much appreciated!
